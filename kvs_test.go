@@ -3,7 +3,6 @@ package kvs
 import (
 	"bytes"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"os"
 	"testing"
@@ -41,8 +40,7 @@ func TestBasic(t *testing.T) {
 		t.Fatalf("got \"%s\", expected \"value1\"", val)
 	}
 	// get something we know is not there
-	if err := db.Get("no.such.key", &val); err != errors.New("Key not found") { // TODO: Returns a valid error, but the test fails
-		// log.Println(err)
+	if err := db.Get("no.such.key", &val); fmt.Sprintf("%v", err) != "Key not found" {
 		t.Fatalf("got \"%s\", expected absence", val)
 	}
 	// delete our key
@@ -50,8 +48,7 @@ func TestBasic(t *testing.T) {
 		t.Fatal(err)
 	}
 	// delete it again
-	if err := db.Delete("key1"); err != errors.New("Key not found") { // TODO: Returns a valid error, but the test fails
-		// log.Println(err)
+	if err := db.Delete("key1"); fmt.Sprintf("%v", err) != "Key not found" {
 		t.Fatalf("delete returned %v, expected not found error", err)
 	}
 	// done
