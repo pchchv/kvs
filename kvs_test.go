@@ -13,8 +13,8 @@ type aStruct struct {
 }
 
 func TestBasic(t *testing.T) {
-	os.Remove("skv-test.db")
-	db, err := Open("skv-test.db")
+	os.Remove("kvs-test.db")
+	db, err := Open("svs-test.db")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -89,8 +89,8 @@ func TestRichTypes(t *testing.T) {
 }
 
 func testGetPut(t *testing.T, inval interface{}, outval interface{}) {
-	os.Remove("skv-test.db")
-	db, err := Open("skv-test.db")
+	os.Remove("kvs-test.db")
+	db, err := Open("kvs-test.db")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -116,9 +116,28 @@ func testGetPut(t *testing.T, inval interface{}, outval interface{}) {
 	}
 }
 
+func TestNil(t *testing.T) {
+	os.Remove("kvs-test.db")
+	db, err := Open("kvs-test.db")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := db.Put("key1", nil); fmt.Sprintf("%v", err) != "Bad value" {
+		t.Fatalf("got %v, expected Bad Value error", err)
+	}
+	if err := db.Put("key1", "value1"); err != nil {
+		t.Fatal(err)
+	}
+	// can Get() into a nil value
+	if err := db.Get("key1", nil); err != nil {
+		t.Fatal(err)
+	}
+	db.Close()
+}
+
 func BenchmarkPut(b *testing.B) {
-	os.Remove("skv-bench.db")
-	db, err := Open("skv-bench.db")
+	os.Remove("kvs-bench.db")
+	db, err := Open("kvs-bench.db")
 	if err != nil {
 		b.Fatal(err)
 	}
@@ -133,8 +152,8 @@ func BenchmarkPut(b *testing.B) {
 }
 
 func BenchmarkPutGet(b *testing.B) {
-	os.Remove("skv-bench.db")
-	db, err := Open("skv-bench.db")
+	os.Remove("kvs-bench.db")
+	db, err := Open("kvs-bench.db")
 	if err != nil {
 		b.Fatal(err)
 	}
@@ -155,8 +174,8 @@ func BenchmarkPutGet(b *testing.B) {
 }
 
 func BenchmarkPutDelete(b *testing.B) {
-	os.Remove("skv-bench.db")
-	db, err := Open("skv-bench.db")
+	os.Remove("kvs-bench.db")
+	db, err := Open("kvs-bench.db")
 	if err != nil {
 		b.Fatal(err)
 	}
