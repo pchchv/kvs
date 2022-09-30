@@ -1,6 +1,9 @@
 package kvs
 
 import (
+	"bytes"
+	"encoding/gob"
+	"errors"
 	"time"
 
 	"github.com/boltdb/bolt"
@@ -35,6 +38,22 @@ func Open(path string) (*Store, error) {
 			return &Store{db: db}, nil
 		}
 	}
+}
+
+// Put the entry in the storage
+// The passed value is gob-encoded and stored
+// The key can be an empty string, but the value cannot be nil - if it is, an error is returned
+func (kvs *Store) Put(key string, value interface{}) error {
+	if value == nil {
+		return errors.New("skv: bad value")
+	}
+	var buf bytes.Buffer
+	if err := gob.NewEncoder(&buf).Encode(value); err != nil {
+		return err
+	}
+	return kvs.db.Update(func(tx *bolt.Tx) error {
+		return tx.Bucket([]byte("kv")).Put([]byte(key), buf.Bytes())
+	})
 }
 
 // Closes the key-value store file
