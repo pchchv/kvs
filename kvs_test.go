@@ -51,6 +51,21 @@ func TestBasic(t *testing.T) {
 	if err := db.Delete("key1"); fmt.Sprintf("%v", err) != "Key not found" {
 		t.Fatalf("delete returned %v, expected not found error", err)
 	}
+	if err := db.Get("key1", &val); fmt.Sprintf("%v", err) != "Key not found" {
+		t.Fatal(err)
+	}
+	if err := db.Put("key1", "value1"); err != nil {
+		t.Fatal(err)
+	}
+	if err := db.Delete("key1"); err != nil {
+		t.Fatal(err)
+	}
+	if err := db.Get("key1", &val); fmt.Sprintf("%v", err) != "Key not found" {
+		t.Fatal(err)
+	}
+	if err := db.Get("", &val); fmt.Sprintf("%v", err) != "Key not found" {
+		t.Fatal(err)
+	}
 	// done
 	if err := db.Close(); err != nil {
 		t.Fatal(err)
