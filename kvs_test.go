@@ -3,6 +3,7 @@ package kvs
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"os"
 	"testing"
@@ -10,6 +11,53 @@ import (
 
 type aStruct struct {
 	Numbers *[]int
+}
+
+func TestBasic(t *testing.T) {
+	os.Remove("skv-test.db")
+	db, err := Open("skv-test.db")
+	if err != nil {
+		t.Fatal(err)
+	}
+	// put a key
+	if err := db.Put("key1", "value1"); err != nil {
+		t.Fatal(err)
+	}
+	// get it back
+	var val string
+	if err := db.Get("key1", &val); err != nil {
+		t.Fatal(err)
+	} else if val != "value1" {
+		t.Fatalf("got \"%s\", expected \"value1\"", val)
+	}
+	// put it again with same value
+	if err := db.Put("key1", "value1"); err != nil {
+		t.Fatal(err)
+	}
+	// get it back again
+	if err := db.Get("key1", &val); err != nil {
+		t.Fatal(err)
+	} else if val != "value1" {
+		t.Fatalf("got \"%s\", expected \"value1\"", val)
+	}
+	// get something we know is not there
+	if err := db.Get("no.such.key", &val); err != errors.New("Key not found") { // TODO: Returns a valid error, but the test fails
+		// log.Println(err)
+		t.Fatalf("got \"%s\", expected absence", val)
+	}
+	// delete our key
+	if err := db.Delete("key1"); err != nil {
+		t.Fatal(err)
+	}
+	// delete it again
+	if err := db.Delete("key1"); err != errors.New("Key not found") { // TODO: Returns a valid error, but the test fails
+		// log.Println(err)
+		t.Fatalf("delete returned %v, expected not found error", err)
+	}
+	// done
+	if err := db.Close(); err != nil {
+		t.Fatal(err)
+	}
 }
 
 func TestRichTypes(t *testing.T) {
