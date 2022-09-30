@@ -75,6 +75,19 @@ func (kvs *Store) Get(key string, value interface{}) error {
 	})
 }
 
+// Delete the entry with the given key
+// If no such key is present in the store, it returns error
+func (kvs *Store) Delete(key string) error {
+	return kvs.db.Update(func(tx *bolt.Tx) error {
+		c := tx.Bucket([]byte("kv")).Cursor()
+		if k, _ := c.Seek([]byte(key)); k == nil || string(k) != key {
+			return errors.New("Key not found")
+		} else {
+			return c.Delete()
+		}
+	})
+}
+
 // Closes the key-value store file
 func (kvs *Store) Close() error {
 	return kvs.db.Close()
