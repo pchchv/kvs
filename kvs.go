@@ -45,7 +45,7 @@ func Open(path string) (*Store, error) {
 // The key can be an empty string, but the value cannot be nil - if it is, an error is returned
 func (kvs *Store) Put(key string, value interface{}) error {
 	if value == nil {
-		return errors.New("skv: bad value")
+		return errors.New("bad value")
 	}
 	var buf bytes.Buffer
 	if err := gob.NewEncoder(&buf).Encode(value); err != nil {
