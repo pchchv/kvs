@@ -3,6 +3,7 @@ package kvs
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"os"
 	"testing"
 )
@@ -53,4 +54,63 @@ func testGetPut(t *testing.T, inval interface{}, outval interface{}) {
 	if err := db.Close(); err != nil {
 		t.Fatal(err)
 	}
+}
+
+func BenchmarkPut(b *testing.B) {
+	os.Remove("skv-bench.db")
+	db, err := Open("skv-bench.db")
+	if err != nil {
+		b.Fatal(err)
+	}
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		if err := db.Put(fmt.Sprintf("key%d", i), "this.is.a.value"); err != nil {
+			b.Fatal(err)
+		}
+	}
+	b.StopTimer()
+	db.Close()
+}
+
+func BenchmarkPutGet(b *testing.B) {
+	os.Remove("skv-bench.db")
+	db, err := Open("skv-bench.db")
+	if err != nil {
+		b.Fatal(err)
+	}
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		if err := db.Put(fmt.Sprintf("key%d", i), "this.is.a.value"); err != nil {
+			b.Fatal(err)
+		}
+	}
+	for i := 0; i < b.N; i++ {
+		var val string
+		if err := db.Get(fmt.Sprintf("key%d", i), &val); err != nil {
+			b.Fatal(err)
+		}
+	}
+	b.StopTimer()
+	db.Close()
+}
+
+func BenchmarkPutDelete(b *testing.B) {
+	os.Remove("skv-bench.db")
+	db, err := Open("skv-bench.db")
+	if err != nil {
+		b.Fatal(err)
+	}
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		if err := db.Put(fmt.Sprintf("key%d", i), "this.is.a.value"); err != nil {
+			b.Fatal(err)
+		}
+	}
+	for i := 0; i < b.N; i++ {
+		if err := db.Delete(fmt.Sprintf("key%d", i)); err != nil {
+			b.Fatal(err)
+		}
+	}
+	b.StopTimer()
+	db.Close()
 }
