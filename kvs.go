@@ -45,7 +45,7 @@ func Open(path string) (*Store, error) {
 // The key can be an empty string, but the value cannot be nil - if it is, an error is returned
 func (kvs *Store) Put(key string, value interface{}) error {
 	if value == nil {
-		return errors.New("bad value")
+		return errors.New("Bad value")
 	}
 	var buf bytes.Buffer
 	if err := gob.NewEncoder(&buf).Encode(value); err != nil {
@@ -53,6 +53,25 @@ func (kvs *Store) Put(key string, value interface{}) error {
 	}
 	return kvs.db.Update(func(tx *bolt.Tx) error {
 		return tx.Bucket([]byte("kv")).Put([]byte(key), buf.Bytes())
+	})
+}
+
+// Get the entry from the store
+// "value" must be a pointer-typed
+// If the key is missing in the store, Get returns an error
+// The value passed to Get() can be nil,
+// in which case any value read from the store is silently discarded
+func (kvs *Store) Get(key string, value interface{}) error {
+	return kvs.db.View(func(tx *bolt.Tx) error {
+		c := tx.Bucket([]byte("kv")).Cursor()
+		if k, v := c.Seek([]byte(key)); k == nil || string(k) != key {
+			return errors.New("Key not found")
+		} else if value == nil {
+			return nil
+		} else {
+			d := gob.NewDecoder(bytes.NewReader(v))
+			return d.Decode(value)
+		}
 	})
 }
 
