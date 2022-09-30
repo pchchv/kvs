@@ -4,8 +4,11 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"math/rand"
 	"os"
+	"sync"
 	"testing"
+	"time"
 )
 
 type aStruct struct {
@@ -133,6 +136,38 @@ func TestNil(t *testing.T) {
 		t.Fatal(err)
 	}
 	db.Close()
+}
+
+func TestGoroutines(t *testing.T) {
+	os.Remove("kvs-test.db")
+	db, err := Open("kvs-test.db")
+	if err != nil {
+		t.Fatal(err)
+	}
+	rand.Seed(time.Now().UnixNano())
+	var wg sync.WaitGroup
+	for i := 0; i < 1000; i++ {
+		wg.Add(1)
+		go func() {
+			switch rand.Intn(3) {
+			case 0:
+				if err := db.Put("key1", "value1"); err != nil {
+					t.Fatal(err)
+				}
+			case 1:
+				var val string
+				if err := db.Get("key1", &val); err != nil && fmt.Sprintf("%v", err) != "Key not found" {
+					t.Fatal(err)
+				}
+			case 2:
+				if err := db.Delete("key1"); err != nil && fmt.Sprintf("%v", err) != "Key not found" {
+					t.Fatal(err)
+				}
+			}
+			wg.Done()
+		}()
+	}
+	wg.Wait()
 }
 
 func BenchmarkPut(b *testing.B) {
