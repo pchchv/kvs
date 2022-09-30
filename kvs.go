@@ -36,3 +36,8 @@ func Open(path string) (*Store, error) {
 		}
 	}
 }
+
+// Closes the key-value store file
+func (kvs *Store) Close() error {
+	return kvs.db.Close()
+}
